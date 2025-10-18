@@ -17,10 +17,41 @@ const app = express();
 connectDB();
 
 // CORS Configuration
+// CORS Configuration - Allow multiple origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://carenest-frontend.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow any Vercel deployment URL (preview deployments)
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow render.com (for testing)
+    if (origin.includes('render.com')) {
+      return callback(null, true);
+    }
+    
+    // Reject other origins
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 // Middleware
