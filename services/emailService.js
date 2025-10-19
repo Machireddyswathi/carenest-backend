@@ -17,7 +17,7 @@ export const sendCaregiverRegistrationEmail = async (caregiver) => {
     subject: 'Welcome to CareNest - Registration Successful!',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4F46E5;">Welcome to CareNest, ${caregiver.name}! 🎉</h2>
+        <h2 style="color: #4F46E5;">Welcome to CareNest, ${caregiver.fullName || caregiver.name}! 🎉</h2>
         
         <p>Thank you for registering as a caregiver on CareNest!</p>
         
@@ -50,9 +50,9 @@ export const sendCaregiverRegistrationEmail = async (caregiver) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Registration email sent to:', caregiver.email);
+    console.log('✅ Registration email sent to:', caregiver.email);
   } catch (error) {
-    console.error('Error sending registration email:', error);
+    console.error('❌ Error sending registration email:', error);
   }
 };
 
@@ -67,18 +67,18 @@ export const sendAdminNotificationEmail = async (caregiver) => {
         
         <div style="background-color: #FEF2F2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #DC2626;">
           <h3 style="margin-top: 0;">Caregiver Details:</h3>
-          <p><strong>Name:</strong> ${caregiver.name}</p>
+          <p><strong>Name:</strong> ${caregiver.fullName || caregiver.name}</p>
           <p><strong>Email:</strong> ${caregiver.email}</p>
           <p><strong>Phone:</strong> ${caregiver.phone}</p>
           <p><strong>Experience:</strong> ${caregiver.experience} years</p>
-          <p><strong>Specialization:</strong> ${caregiver.specialization}</p>
+          <p><strong>Specializations:</strong> ${caregiver.specializations?.join(', ') || 'N/A'}</p>
           <p><strong>Registered:</strong> ${new Date().toLocaleString()}</p>
         </div>
         
         <div style="background-color: #F9FAFB; padding: 20px; border-radius: 8px;">
           <h3 style="margin-top: 0;">Documents Submitted:</h3>
-          <p>✅ Aadhaar: ${caregiver.documents?.aadhaar?.number || 'N/A'}</p>
-          <p>✅ PAN: ${caregiver.documents?.pan?.number || 'N/A'}</p>
+          <p>✅ Aadhaar: ${caregiver.aadhaarNumber || 'N/A'}</p>
+          <p>✅ PAN: ${caregiver.panNumber || 'N/A'}</p>
         </div>
         
         <div style="margin-top: 30px;">
@@ -100,9 +100,9 @@ export const sendAdminNotificationEmail = async (caregiver) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Admin notification email sent');
+    console.log('✅ Admin notification email sent');
   } catch (error) {
-    console.error('Error sending admin notification:', error);
+    console.error('❌ Error sending admin notification:', error);
   }
 };
 
@@ -118,7 +118,7 @@ export const sendApprovalEmail = async (caregiver) => {
         </div>
         
         <div style="padding: 30px; background-color: #ffffff; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 8px 8px;">
-          <p>Dear ${caregiver.name},</p>
+          <p>Dear ${caregiver.fullName || caregiver.name},</p>
           
           <p>Great news! Your caregiver profile has been approved and is now <strong>LIVE</strong> on CareNest! 🚀</p>
           
@@ -174,9 +174,9 @@ export const sendApprovalEmail = async (caregiver) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Approval email sent to:', caregiver.email);
+    console.log('✅ Approval email sent to:', caregiver.email);
   } catch (error) {
-    console.error('Error sending approval email:', error);
+    console.error('❌ Error sending approval email:', error);
   }
 };
 
@@ -189,7 +189,7 @@ export const sendRejectionEmail = async (caregiver, reason) => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #DC2626;">Registration Update</h2>
         
-        <p>Dear ${caregiver.name},</p>
+        <p>Dear ${caregiver.fullName || caregiver.name},</p>
         
         <p>Thank you for your interest in becoming a caregiver on CareNest.</p>
         
@@ -212,8 +212,8 @@ export const sendRejectionEmail = async (caregiver, reason) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Rejection email sent to:', caregiver.email);
+    console.log('✅ Rejection email sent to:', caregiver.email);
   } catch (error) {
-    console.error('Error sending rejection email:', error);
+    console.error('❌ Error sending rejection email:', error);
   }
 };

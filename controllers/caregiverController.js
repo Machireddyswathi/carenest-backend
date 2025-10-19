@@ -50,6 +50,8 @@ export const getAllCaregivers = async (req, res) => {
 
     const query = { 
       verificationStatus: 'verified',
+      status: 'approved',         
+      isVerified: true, 
       isActive: true 
     };
 

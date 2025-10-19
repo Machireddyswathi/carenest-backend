@@ -73,12 +73,35 @@ const caregiverSchema = new mongoose.Schema({
     type: String, // File path
     required: true
   },
-  verificationStatus: {
-    type: String,
-    enum: ['pending', 'verified', 'rejected'],
-    default: 'pending'
-  },
-  verificationDate: Date,
+  // Approval & Verification Status
+verificationStatus: {
+  type: String,
+  enum: ['pending', 'verified', 'rejected'],
+  default: 'pending'
+},
+verificationDate: Date,
+
+status: {
+  type: String,
+  enum: ['pending', 'approved', 'rejected', 'suspended'],
+  default: 'pending'
+},
+isVerified: {
+  type: Boolean,
+  default: false
+},
+verifiedAt: {
+  type: Date,
+  default: null
+},
+registeredAt: {
+  type: Date,
+  default: Date.now
+},
+rejectionReason: {
+  type: String,
+  default: null
+},
   
   // Professional Information
   experience: {
