@@ -2,6 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Caregiver from '../models/Caregiver.js';
 import Senior from '../models/Senior.js';
+import { 
+  sendCaregiverRegistrationEmail, 
+  sendAdminNotificationEmail 
+} from '../services/emailService.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -105,14 +109,24 @@ export const registerCaregiver = async (req, res) => {
       password: hashedPassword
     });
 
+    // Send emails
+    try {
+      await sendCaregiverRegistrationEmail(caregiver);
+      await sendAdminNotificationEmail(caregiver);
+      console.log('✅ Registration emails sent');
+    } catch (emailError) {
+      console.error('⚠️ Email sending failed (but registration succeeded):', emailError);
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Caregiver registered successfully! Your documents will be verified within 2-3 business days.',
+      message: 'Caregiver registered successfully! Your documents will be verified within 24-48 hours. You will receive an email once approved.',
       data: {
         id: caregiver._id,
         fullName: caregiver.fullName,
         email: caregiver.email,
-        verificationStatus: caregiver.verificationStatus
+        verificationStatus: caregiver.verificationStatus,
+        status: caregiver.status
       }
     });
   } catch (error) {
@@ -125,7 +139,7 @@ export const registerCaregiver = async (req, res) => {
   }
 };
 
-// Register Senior/Family
+// Register Senior/Family - ✅ FIXED
 export const registerSenior = async (req, res) => {
   try {
     const {
@@ -135,7 +149,10 @@ export const registerSenior = async (req, res) => {
       relationship,
       seniorName,
       seniorAge,
-      address,
+      address,      // Can be string or object
+      city,         // Flat fields from frontend
+      state,
+      pincode,
       careType,
       medicalConditions,
       specialNeeds,
@@ -146,11 +163,14 @@ export const registerSenior = async (req, res) => {
       password
     } = req.body;
 
+    console.log('Senior registration attempt:', { email, guardianName });
+
     // Check if senior already exists
     const seniorExists = await Senior.findOne({ email });
 
     if (seniorExists) {
       return res.status(400).json({ 
+        success: false,
         message: 'Account with this email already exists' 
       });
     }
@@ -159,6 +179,16 @@ export const registerSenior = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // ✅ FIX: Structure address properly - handle both flat and nested formats
+    const addressObj = {
+      street: typeof address === 'string' ? address : (address?.street || ''),
+      city: city || address?.city || '',
+      state: state || address?.state || '',
+      pincode: pincode || address?.pincode || ''
+    };
+
+    console.log('Creating senior with structured address:', addressObj);
+
     // Create senior/family account
     const senior = await Senior.create({
       guardianName,
@@ -166,21 +196,23 @@ export const registerSenior = async (req, res) => {
       phone,
       relationship,
       seniorName,
-      seniorAge,
-      address,
+      seniorAge: parseInt(seniorAge),
+      address: addressObj,
       careType,
       medicalConditions,
-      specialNeeds,
-      preferredGender,
-      startDate,
-      budget,
-      additionalInfo,
+      specialNeeds: specialNeeds || '',
+      preferredGender: preferredGender || 'no-preference',
+      startDate: new Date(startDate),
+      budget: parseInt(budget),
+      additionalInfo: additionalInfo || '',
       password: hashedPassword
     });
 
+    console.log('✅ Senior created successfully:', senior._id);
+
     res.status(201).json({
       success: true,
-      message: 'Account registered successfully. We will contact you with suitable caregiver matches.',
+      message: 'Account registered successfully! You can now search for caregivers and connect with them.',
       data: {
         id: senior._id,
         guardianName: senior.guardianName,
@@ -189,9 +221,10 @@ export const registerSenior = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('❌ Senior registration error:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Error registering account',
+      message: 'Error registering account: ' + error.message,
       error: error.message 
     });
   }
