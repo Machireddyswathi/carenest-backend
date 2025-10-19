@@ -6,7 +6,7 @@ import caregiverRoutes from './routes/caregiverRoutes.js';
 import seniorRoutes from './routes/seniorRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
-
+import adminRoutes from './routes/adminRoutes.js';
 // Load environment variables
 dotenv.config();
 
@@ -94,7 +94,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/caregivers', caregiverRoutes);
 app.use('/api/seniors', seniorRoutes);
 app.use('/api/bookings', bookingRoutes);
-
+app.use('/api/admin', adminRoutes);
 // Test route to verify API is working
 app.get('/api', (req, res) => {
   res.json({
