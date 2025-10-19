@@ -1,6 +1,40 @@
 import Caregiver from '../models/Caregiver.js';
+import { 
+  sendCaregiverRegistrationEmail, 
+  sendAdminNotificationEmail 
+} from '../services/emailService.js';  // ✅ Added email imports
 
+
+// ================================
+// Register a new caregiver
+// ================================
+export const registerCaregiver = async (req, res) => {
+  try {
+    const caregiver = await Caregiver.create(req.body);
+
+    // ✉️ Send emails after registration
+    await sendCaregiverRegistrationEmail(caregiver);
+    await sendAdminNotificationEmail(caregiver);
+
+    res.status(201).json({
+      success: true,
+      message: 'Caregiver registered successfully! Confirmation email sent.',
+      caregiver
+    });
+  } catch (error) {
+    console.error('Error registering caregiver:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Registration failed',
+      error: error.message 
+    });
+  }
+};
+
+
+// ================================
 // Get all verified caregivers
+// ================================
 export const getAllCaregivers = async (req, res) => {
   try {
     const { 
@@ -14,7 +48,6 @@ export const getAllCaregivers = async (req, res) => {
       limit = 10 
     } = req.query;
 
-    // Build query
     const query = { 
       verificationStatus: 'verified',
       isActive: true 
@@ -47,7 +80,7 @@ export const getAllCaregivers = async (req, res) => {
 
     // Sorting
     let sort = {};
-    switch(sortBy) {
+    switch (sortBy) {
       case 'rating':
         sort = { rating: -1 };
         break;
@@ -92,7 +125,10 @@ export const getAllCaregivers = async (req, res) => {
   }
 };
 
+
+// ================================
 // Get single caregiver by ID
+// ================================
 export const getCaregiverById = async (req, res) => {
   try {
     const caregiver = await Caregiver.findById(req.params.id)
@@ -119,7 +155,10 @@ export const getCaregiverById = async (req, res) => {
   }
 };
 
+
+// ================================
 // Update caregiver profile
+// ================================
 export const updateCaregiver = async (req, res) => {
   try {
     const allowedUpdates = [
@@ -167,7 +206,10 @@ export const updateCaregiver = async (req, res) => {
   }
 };
 
+
+// ================================
 // Delete caregiver account
+// ================================
 export const deleteCaregiver = async (req, res) => {
   try {
     const caregiver = await Caregiver.findByIdAndUpdate(
@@ -193,7 +235,10 @@ export const deleteCaregiver = async (req, res) => {
   }
 };
 
+
+// ================================
 // Get caregiver stats (for dashboard)
+// ================================
 export const getCaregiverStats = async (req, res) => {
   try {
     const caregiver = await Caregiver.findById(req.user.id);

@@ -1,4 +1,5 @@
 import Caregiver from '../models/Caregiver.js';
+import { sendApprovalEmail, sendRejectionEmail } from '../services/emailService.js'; // ✅ ADD THIS LINE
 
 // Get all pending caregivers (for admin dashboard)
 export const getPendingCaregivers = async (req, res) => {
@@ -46,6 +47,9 @@ export const approveCaregiver = async (req, res) => {
       });
     }
 
+    // ✅ Send approval email after successful update
+    await sendApprovalEmail(caregiver);
+
     res.status(200).json({
       success: true,
       message: 'Caregiver approved successfully',
@@ -82,6 +86,9 @@ export const rejectCaregiver = async (req, res) => {
         message: 'Caregiver not found' 
       });
     }
+
+    // ✅ Send rejection email after update
+    await sendRejectionEmail(caregiver, reason);
 
     res.status(200).json({
       success: true,
